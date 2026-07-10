@@ -1,30 +1,37 @@
 <?php
 session_start();
-include '../includes/sidebar_admin.php';
 
-$conn = mysqli_connect("localhost", "root", "", "sisteminformasi");
-if (!$conn) die("Koneksi gagal");
+include '../includes/config.php';
+include '../includes/sidebar_admin.php';
 
 /* =====================
    TAMBAH / EDIT
 ===================== */
 if (isset($_POST['simpan'])) {
+
     $id    = $_POST['id'];
-    $nama  = $_POST['nama_sampah'];
-    $harga = $_POST['harga_per_kg'];
+    $nama  = mysqli_real_escape_string($conn, $_POST['nama_sampah']);
+    $harga = mysqli_real_escape_string($conn, $_POST['harga_per_kg']);
 
     if ($id == "") {
-        mysqli_query($conn, "
+
+        mysqli_query($conn,"
             INSERT INTO jenis_sampah (nama_sampah, harga_per_kg)
             VALUES ('$nama','$harga')
         ");
+
     } else {
-        mysqli_query($conn, "
+
+        mysqli_query($conn,"
             UPDATE jenis_sampah
-            SET nama_sampah='$nama', harga_per_kg='$harga'
+            SET
+                nama_sampah='$nama',
+                harga_per_kg='$harga'
             WHERE id='$id'
         ");
+
     }
+
     header("Location: jenis_sampah.php");
     exit;
 }
@@ -32,9 +39,12 @@ if (isset($_POST['simpan'])) {
 /* =====================
    SEARCH
 ===================== */
+
 $keyword = $_GET['q'] ?? '';
+
 $data = mysqli_query($conn,"
-    SELECT * FROM jenis_sampah
+    SELECT *
+    FROM jenis_sampah
     WHERE nama_sampah LIKE '%$keyword%'
     ORDER BY id ASC
 ");
@@ -42,33 +52,45 @@ $data = mysqli_query($conn,"
 
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
+
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Manajemen Jenis Sampah</title>
 
 <style>
+
 body{
     margin:0;
     font-family:'Segoe UI',sans-serif;
     background:#f5f7fb;
 }
+
 .content{
     margin-left:240px;
     padding:30px;
 }
-h1{margin-bottom:20px}
+
+h1{
+    margin-bottom:20px;
+}
+
 .top-bar{
     display:flex;
     justify-content:space-between;
     align-items:center;
     margin-bottom:20px;
 }
+
 .search-box{
     width:260px;
     padding:10px 14px;
     border-radius:8px;
     border:1px solid #ddd;
 }
+
 .btn-add{
     background:#6366f1;
     color:#fff;
@@ -77,25 +99,45 @@ h1{margin-bottom:20px}
     border-radius:8px;
     cursor:pointer;
 }
+
 .card{
     background:#fff;
     border-radius:12px;
     box-shadow:0 4px 12px rgba(0,0,0,.05);
 }
+
 .card-header{
     padding:16px 20px;
     font-weight:600;
     border-bottom:1px solid #eee;
 }
-.card-body{padding:20px}
-table{width:100%;border-collapse:collapse}
-th,td{
+
+.card-body{
+    padding:20px;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+th,
+td{
     padding:14px 12px;
     border-bottom:1px solid #eee;
     font-size:14px;
 }
-th{background:#fafafa;color:#6b7280;text-align:left}
-.actions{display:flex}
+
+th{
+    background:#fafafa;
+    color:#6b7280;
+    text-align:left;
+}
+
+.actions{
+    display:flex;
+}
+
 .btn-edit{
     padding:6px 12px;
     border:1px solid #c7d2fe;
@@ -104,6 +146,7 @@ th{background:#fafafa;color:#6b7280;text-align:left}
     background:none;
     cursor:pointer;
 }
+
 .modal{
     display:none;
     position:fixed;
@@ -113,32 +156,38 @@ th{background:#fafafa;color:#6b7280;text-align:left}
     align-items:center;
     z-index:999;
 }
+
 .modal-box{
     background:#fff;
     width:380px;
     border-radius:14px;
     padding:22px;
 }
+
 .form-group{
     margin-bottom:14px;
 }
+
 .form-group label{
     display:block;
     font-size:14px;
     margin-bottom:6px;
     font-weight:500;
 }
+
 .form-group input{
     width:100%;
     padding:10px 12px;
     border-radius:8px;
     border:1px solid #ddd;
 }
+
 .modal-actions{
     display:flex;
     gap:10px;
     margin-top:10px;
 }
+
 .btn-save{
     flex:1;
     background:#6366f1;
@@ -146,15 +195,20 @@ th{background:#fafafa;color:#6b7280;text-align:left}
     border:none;
     padding:10px;
     border-radius:8px;
+    cursor:pointer;
 }
+
 .btn-cancel{
     flex:1;
     background:#e5e7eb;
     border:none;
     padding:10px;
     border-radius:8px;
+    cursor:pointer;
 }
+
 </style>
+
 </head>
 
 <body>
@@ -164,88 +218,225 @@ th{background:#fafafa;color:#6b7280;text-align:left}
 <h1>Manajemen Jenis Sampah</h1>
 
 <div class="top-bar">
-    <form>
-        <input class="search-box" name="q"
-               placeholder="Cari jenis sampah..." value="<?= $keyword ?>">
-    </form>
-    <button class="btn-add" onclick="openModal()">＋ Tambah Jenis Sampah</button>
+
+<form>
+
+<input
+class="search-box"
+name="q"
+placeholder="Cari jenis sampah..."
+value="<?= htmlspecialchars($keyword) ?>">
+
+</form>
+
+<button
+class="btn-add"
+onclick="openModal()">
+
+＋ Tambah Jenis Sampah
+
+</button>
+
 </div>
 
 <div class="card">
-<div class="card-header">Daftar Jenis Sampah</div>
+
+<div class="card-header">
+
+Daftar Jenis Sampah
+
+</div>
+
 <div class="card-body">
+
 <table>
+
 <tr>
+
 <th>ID</th>
 <th>Nama Sampah</th>
 <th>Harga per Kg (Rp)</th>
 <th width="120">Aksi</th>
+
 </tr>
 
+<?php if(mysqli_num_rows($data)>0){ ?>
+
 <?php while($r=mysqli_fetch_assoc($data)){ ?>
+
 <tr>
-<td><?= $r['id'] ?></td>
-<td><?= $r['nama_sampah'] ?></td>
-<td><?= number_format($r['harga_per_kg'],0,',','.') ?></td>
-<td class="actions">
-<button class="btn-edit"
-onclick="editData('<?= $r['id'] ?>','<?= $r['nama_sampah'] ?>','<?= $r['harga_per_kg'] ?>')">
-✏ Edit
-</button>
+
+<td><?= $r['id']; ?></td>
+
+<td><?= htmlspecialchars($r['nama_sampah']); ?></td>
+
+<td>
+Rp <?= number_format($r['harga_per_kg'],0,",","."); ?>
 </td>
+
+<td class="actions">
+
+<button
+class="btn-edit"
+onclick="editData(
+'<?= $r['id']; ?>',
+'<?= htmlspecialchars($r['nama_sampah']); ?>',
+'<?= $r['harga_per_kg']; ?>'
+)">
+
+✏ Edit
+
+</button>
+
+</td>
+
 </tr>
+
+<?php } ?>
+
+<?php } else { ?>
+
+<tr>
+
+<td colspan="4" style="text-align:center">
+
+Belum ada data jenis sampah.
+
+</td>
+
+</tr>
+
 <?php } ?>
 
 </table>
+
 </div>
+
 </div>
+
 </div>
 
 <!-- MODAL -->
+
 <div class="modal" id="modal">
+
 <div class="modal-box">
-<h3 id="modalTitle">Tambah Jenis Sampah</h3>
-<form method="post">
-<input type="hidden" name="id" id="id">
+
+<h3 id="modalTitle">
+
+Tambah Jenis Sampah
+
+</h3>
+
+<form method="POST">
+
+<input
+type="hidden"
+name="id"
+id="id">
 
 <div class="form-group">
+
 <label>Nama Sampah</label>
-<input name="nama_sampah" id="nama" required>
+
+<input
+type="text"
+name="nama_sampah"
+id="nama"
+required>
+
 </div>
 
 <div class="form-group">
+
 <label>Harga per Kg</label>
-<input type="number" name="harga_per_kg" id="harga" required>
+
+<input
+type="number"
+name="harga_per_kg"
+id="harga"
+required>
+
 </div>
 
 <div class="modal-actions">
-<button class="btn-save" name="simpan">Simpan</button>
-<button type="button" class="btn-cancel" onclick="closeModal()">Batal</button>
+
+<button
+class="btn-save"
+type="submit"
+name="simpan">
+
+Simpan
+
+</button>
+
+<button
+type="button"
+class="btn-cancel"
+onclick="closeModal()">
+
+Batal
+
+</button>
+
 </div>
+
 </form>
+
 </div>
+
 </div>
 
 <script>
+
+const modal=document.getElementById("modal");
+const modalTitle=document.getElementById("modalTitle");
+const id=document.getElementById("id");
+const nama=document.getElementById("nama");
+const harga=document.getElementById("harga");
+
 function openModal(){
-    modal.style.display='flex';
-    modalTitle.innerText='Tambah Jenis Sampah';
-    id.value=''; nama.value=''; harga.value='';
+
+modal.style.display="flex";
+
+modalTitle.innerText="Tambah Jenis Sampah";
+
+id.value="";
+nama.value="";
+harga.value="";
+
 }
+
 function closeModal(){
-    modal.style.display='none';
+
+modal.style.display="none";
+
 }
-function editData(idv, namav, hargav){
-    openModal();
-    modalTitle.innerText='Edit Jenis Sampah';
-    id.value=idv;
-    nama.value=namav;
-    harga.value=hargav;
+
+function editData(idv,namav,hargav){
+
+openModal();
+
+modalTitle.innerText="Edit Jenis Sampah";
+
+id.value=idv;
+nama.value=namav;
+harga.value=hargav;
+
 }
-window.onclick=e=>{
-    if(e.target===modal) closeModal();
+
+window.onclick=function(e){
+
+if(e.target===modal){
+
+closeModal();
+
 }
+
+}
+
 </script>
 
 </body>
+
 </html>
